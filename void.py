@@ -76,3 +76,11 @@ class VOID:
         for subkey in self._keys:
             left, right = right, left ^ _round(right, subkey)
         return left.to_bytes(8, "big") + right.to_bytes(8, "big")
+
+    def decrypt_block(self, block):
+        block = _bytes(block, "block", BLOCK_SIZE)
+        left = int.from_bytes(block[:8], "big")
+        right = int.from_bytes(block[8:], "big")
+        for subkey in reversed(self._keys):
+            left, right = right ^ _round(left, subkey), left
+        return left.to_bytes(8, "big") + right.to_bytes(8, "big")
