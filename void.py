@@ -36,7 +36,7 @@ def _round(value, subkey):
 
 
 def _expand(key):
-    state = [int.from_bytes(key[i:i + 8], "big") for i in range(0, 16, 8)] * 2
+    state = [int.from_bytes(key[i:i + 8], "big") for i in range(0, KEY_SIZE, 8)]
     result = []
     for index in range(ROUNDS):
         slot = index % 4
