@@ -10,7 +10,7 @@ import sys
 
 BLOCK_SIZE = 16
 KEY_SIZE = 32
-ROUNDS = 8
+ROUNDS = 24
 MASK = (1 << 64) - 1
 MAGIC = b"VOID\x01"
 TAG_SIZE = 32
