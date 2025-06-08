@@ -84,3 +84,26 @@ class VOID:
         for subkey in reversed(self._keys):
             left, right = right ^ _round(left, subkey), left
         return left.to_bytes(8, "big") + right.to_bytes(8, "big")
+
+    def encrypt_cbc(self, data, iv):
+        data = _bytes(data, "data")
+        if len(data) % BLOCK_SIZE:
+            raise ValueError("data must contain complete blocks")
+        previous = _bytes(iv, "iv", BLOCK_SIZE)
+        output = []
+        for offset in range(0, len(data), BLOCK_SIZE):
+            previous = self.encrypt_block(_xor(data[offset:offset + BLOCK_SIZE], previous))
+            output.append(previous)
+        return b"".join(output)
+
+    def decrypt_cbc(self, data, iv):
+        data = _bytes(data, "data")
+        previous = _bytes(iv, "iv", BLOCK_SIZE)
+        if len(data) % BLOCK_SIZE:
+            raise ValueError("ciphertext must contain complete blocks")
+        output = []
+        for offset in range(0, len(data), BLOCK_SIZE):
+            block = data[offset:offset + BLOCK_SIZE]
+            output.append(_xor(self.decrypt_block(block), previous))
+            previous = block
+        return b"".join(output)
