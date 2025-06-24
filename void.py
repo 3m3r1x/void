@@ -47,7 +47,7 @@ def _expand(key):
 
 
 def _pad(data):
-    amount = BLOCK_SIZE - len(data) % BLOCK_SIZE
+    amount = (-len(data)) % BLOCK_SIZE
     return data + bytes([amount]) * amount
 
 
@@ -86,9 +86,7 @@ class VOID:
         return left.to_bytes(8, "big") + right.to_bytes(8, "big")
 
     def encrypt_cbc(self, data, iv):
-        data = _bytes(data, "data")
-        if len(data) % BLOCK_SIZE:
-            raise ValueError("data must contain complete blocks")
+        data = _pad(_bytes(data, "data"))
         previous = _bytes(iv, "iv", BLOCK_SIZE)
         output = []
         for offset in range(0, len(data), BLOCK_SIZE):
@@ -99,11 +97,11 @@ class VOID:
     def decrypt_cbc(self, data, iv):
         data = _bytes(data, "data")
         previous = _bytes(iv, "iv", BLOCK_SIZE)
-        if len(data) % BLOCK_SIZE:
+        if not data or len(data) % BLOCK_SIZE:
             raise ValueError("ciphertext must contain complete blocks")
         output = []
         for offset in range(0, len(data), BLOCK_SIZE):
             block = data[offset:offset + BLOCK_SIZE]
             output.append(_xor(self.decrypt_block(block), previous))
             previous = block
-        return b"".join(output)
+        return _unpad(b"".join(output))
