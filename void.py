@@ -47,7 +47,7 @@ def _expand(key):
 
 
 def _pad(data):
-    amount = (-len(data)) % BLOCK_SIZE
+    amount = BLOCK_SIZE - len(data) % BLOCK_SIZE
     return data + bytes([amount]) * amount
 
 
