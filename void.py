@@ -17,11 +17,11 @@ TAG_SIZE = 32
 
 
 def _bytes(value, name, size=None):
-    if not isinstance(value, (bytes, bytearray)):
+    if not isinstance(value, bytes):
         raise ValueError(f"{name} must be bytes")
     if size is not None and len(value) != size:
         raise ValueError(f"{name} must contain exactly {size} bytes")
-    return bytes(value)
+    return value
 
 
 def _rol(value, distance):
