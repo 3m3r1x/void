@@ -11,4 +11,5 @@ from void import VOID
 cipher = VOID(bytes(range(32)))
 encrypted = cipher.encrypt_block(bytes(16))
 assert cipher.decrypt_block(encrypted) == bytes(16)
+assert cipher.unseal(cipher.seal(b"notes for myself")) == b"notes for myself"
 ```

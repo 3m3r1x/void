@@ -68,6 +68,7 @@ class VOID:
     def __init__(self, key):
         key = _bytes(key, "key", KEY_SIZE)
         self._keys = _expand(key)
+        self._mac_key = hashlib.sha256(b"VOID/mac/v1/" + key).digest()
 
     def encrypt_block(self, block):
         block = _bytes(block, "block", BLOCK_SIZE)
@@ -105,3 +106,22 @@ class VOID:
             output.append(_xor(self.decrypt_block(block), previous))
             previous = block
         return _unpad(b"".join(output))
+
+    def seal(self, data, iv=None):
+        if iv is None:
+            iv = secrets.token_bytes(BLOCK_SIZE)
+        body = MAGIC + _bytes(iv, "iv", BLOCK_SIZE) + self.encrypt_cbc(data, iv)
+        tag = hmac.new(self._mac_key, body[len(MAGIC) + BLOCK_SIZE:], hashlib.sha256).digest()
+        return body + tag
+
+    def unseal(self, envelope):
+        envelope = _bytes(envelope, "envelope")
+        minimum = len(MAGIC) + BLOCK_SIZE + BLOCK_SIZE + TAG_SIZE
+        if len(envelope) < minimum or not envelope.startswith(MAGIC):
+            raise ValueError("invalid VOID envelope")
+        body, tag = envelope[:-TAG_SIZE], envelope[-TAG_SIZE:]
+        expected = hmac.new(self._mac_key, body[len(MAGIC) + BLOCK_SIZE:], hashlib.sha256).digest()
+        if not hmac.compare_digest(tag, expected):
+            raise ValueError("authentication failed")
+        start = len(MAGIC)
+        return self.decrypt_cbc(body[start + BLOCK_SIZE:], body[start:start + BLOCK_SIZE])
