@@ -111,7 +111,7 @@ class VOID:
         if iv is None:
             iv = secrets.token_bytes(BLOCK_SIZE)
         body = MAGIC + _bytes(iv, "iv", BLOCK_SIZE) + self.encrypt_cbc(data, iv)
-        tag = hmac.new(self._mac_key, body[len(MAGIC) + BLOCK_SIZE:], hashlib.sha256).digest()
+        tag = hmac.new(self._mac_key, body, hashlib.sha256).digest()
         return body + tag
 
     def unseal(self, envelope):
@@ -120,7 +120,7 @@ class VOID:
         if len(envelope) < minimum or not envelope.startswith(MAGIC):
             raise ValueError("invalid VOID envelope")
         body, tag = envelope[:-TAG_SIZE], envelope[-TAG_SIZE:]
-        expected = hmac.new(self._mac_key, body[len(MAGIC) + BLOCK_SIZE:], hashlib.sha256).digest()
+        expected = hmac.new(self._mac_key, body, hashlib.sha256).digest()
         if not hmac.compare_digest(tag, expected):
             raise ValueError("authentication failed")
         start = len(MAGIC)
