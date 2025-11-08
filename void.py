@@ -125,3 +125,25 @@ class VOID:
             raise ValueError("authentication failed")
         start = len(MAGIC)
         return self.decrypt_cbc(body[start + BLOCK_SIZE:], body[start:start + BLOCK_SIZE])
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="VOID file encryption")
+    parser.add_argument("action", choices=("encrypt", "decrypt"))
+    parser.add_argument("input", type=Path)
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--key", required=True, help="32-byte key as 64 hexadecimal digits")
+    args = parser.parse_args(argv)
+    try:
+        cipher = VOID(bytes.fromhex(args.key))
+        data = args.input.read_bytes()
+        result = cipher.seal(data) if args.action == "encrypt" else cipher.unseal(data)
+        args.output.write_bytes(result)
+    except (ValueError, OSError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
