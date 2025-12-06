@@ -138,7 +138,10 @@ def main(argv=None):
         cipher = VOID(bytes.fromhex(args.key))
         data = args.input.read_bytes()
         result = cipher.seal(data) if args.action == "encrypt" else cipher.unseal(data)
-        args.output.write_bytes(result)
+        if args.output.exists():
+            raise ValueError("output already exists")
+        with args.output.open("xb") as stream:
+            stream.write(result)
     except (ValueError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
